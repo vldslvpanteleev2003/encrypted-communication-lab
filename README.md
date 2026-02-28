@@ -3,7 +3,6 @@ Educational laboratory project demonstrating AES-CBC encrypted TCP client-server
 The project was created for studying network traffic analysis in Wireshark and practicing reverse engineering of encrypted communication in a controlled environment.
 
 # How it works
-## How it works
 Before running the project, create a file named `task.txt` in the server directory and place a single digit inside it: either `1` or `2`.
 - Task `1` — the client collects and transmits the hostname.
 - Task `2` — the client collects and transmits the username of the active user.
