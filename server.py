@@ -24,7 +24,7 @@ if __name__ == '__main__':
         data = conn.recv(1024)
         print("Received:", data)
 
-        if data == b"get_task":
+        if data == b"get_task_enc":
             conn.send(task)
             result = conn.recv(4096)
 
@@ -40,4 +40,13 @@ if __name__ == '__main__':
             with open("receivedata.txt", "ab") as f:
                 f.write(f"Time:    {time}\nPayload: {plaintext.decode()}\nTask:    {task.decode()}\n\n".encode())
 
+        elif data == b"get_task":
+            conn.send(task)
+            plaintext = conn.recv(4096)
+
+            timenow = datetime.now()
+            time = timenow.strftime("%d.%m.%Y %H:%M:%S")
+
+            with open("receivedata.txt", "ab") as f:
+                f.write(f"Time:    {time}\nPayload: {plaintext.decode()}\nTask:    {task.decode()}\n\n".encode())
         conn.close()
